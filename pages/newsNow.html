@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0, user-scalable=0,viewport-fit=cover">
+    <meta name="referrer" content="never">
+    <title>快讯</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="./../css/mint-ui.css">
+    <link rel="stylesheet" href="./../css/swiper.css">
+    <link rel="stylesheet" href="./../css/common.css">
+    <link rel="stylesheet" href="./../css/main.css">
+
+    <style type="text/css">
+        .myloaddiv{
+            min-height: 100%;
+            padding-top: 40px;
+        }
+
+    </style>
+</head>
+<body>
+<div id="app">
+    <mt-header fixed title="正在">
+        <span slot="left">
+            <mt-button @click="back()" icon="back">返回</mt-button>
+        </span>
+    </mt-header>
+    <mt-loadmore
+            ref="loadmoreStock"
+            class="myloaddiv"
+            :topDistance="60"
+            :maxDistance="90"
+            :top-method="loadTopStock"
+            @translate-change="translateChangeStock"
+            @top-status-change="handleTopChangeStock"
+
+            :bottom-method="loadBottomStock"
+            @bottom-status-change="handleBottomChangeStock"
+            :bottom-all-loaded="allLoadedStock"
+    >
+        <div slot="top" class="mint-loadmore-top">
+            <span v-show="topStatusStock !== 'loading'" :class="{ 'rotate': topStatusStock === 'drop' }">↓下拉刷新</span>
+            <span v-show="topStatusStock === 'loading'">Loading...</span>
+        </div>
+        <template v-for="(item,index) in testListStock">
+            {{index}}---2<br>
+        </template>
+
+        <div slot="bottom" class="mint-loadmore-bottom">
+            <span v-show="bottomStatusStock !== 'loading'" :class="{ 'is-rotate': bottomStatusStock === 'drop' }">上拉加载更多</span>
+            <span  v-show="bottomStatusStock === 'loading'">
+                <mt-spinner type="snake"></mt-spinner>
+            </span>
+        </div>
+    </mt-loadmore>
+</div>
+</body>
+<script src="./../js/vue.min.js"></script>
+<script src="./../js/swiper.js"></script>
+<script src="./../js/mint-ui.min.js"></script>
+<script src="./../js/axios.min.js"></script>
+
+
+<script src="./../js/httpUtils.js"></script>
+<script src="./../js/urlInfo.js"></script>
+
+<script>
+    new Vue({
+        el: '#app',
+        data:{
+            topStatusStock: '',//下拉刷新页面的状态
+            translateStock: 0,//下拉距离
+            moveTranslateStock:0,
+            allLoadedStock: false,
+            bottomStatusStock: '',
+            wrapperHeightStock: 0,
+            testListStock:[0,1,2,3,4,5,6,7,8,9,10],
+        },
+        created() {
+
+        },
+        mounted() {
+
+        },
+        watch: {
+        },
+        methods: {
+            back(){
+                window.location.href="./../index.html";
+            },
+
+            loadTopStock() {
+                setTimeout(() => {
+                    console.log("模拟一次request请求，延迟1s")
+                    this.translateStock = 0;
+                    this.$refs.loadmoreStock.onTopLoaded();
+                }, 500);
+            },
+            /**
+             *   top-status-change 每当 状态改变 时触发
+             *   已知状态 pull 默认状态，drop 释放后执行 top-method， loading drop状态后待没有执行onTopLoaded()方法时的状态。
+             */
+            handleTopChangeStock(status) {
+                this.moveTranslateStock = 1;
+                this.topStatusStock = status;
+            },
+            // @translate-change 当我执行 滑动操作时 总会触发此事件
+            translateChangeStock(translate) {
+                const translateNum = +translate;
+                this.translateStock = translateNum.toFixed(2);
+            },
+            handleBottomChangeStock(status) {
+                this.bottomStatusStock = status;
+            },
+            loadBottomStock() {
+                setTimeout(() => {
+                    let lastValue = this.testListStock[this.testListStock.length - 1];
+                    if (lastValue < 100) {
+                        for (let i = 1; i <= 10; i++) {
+                            this.testListStock.push(lastValue + i);
+                        }
+                    } else {
+                        this.allLoadedStock = true;
+                    }
+                    this.$refs.loadmoreStock.onBottomLoaded();
+                }, 1500);
+            }
+        },
+        computed: {
+
+        },
+        components: {
+        }
+    })
+</script>
+</html>
