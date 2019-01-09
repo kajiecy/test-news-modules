@@ -1,0 +1,442 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0, user-scalable=0,viewport-fit=cover">
+    <meta name="referrer" content="never">
+    <title>快讯</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="./css/mint-ui.css">
+    <link rel="stylesheet" href="./css/swiper.css">
+    <link rel="stylesheet" href="./css/common.css">
+    <link rel="stylesheet" href="./css/main.css">
+
+    <style type="text/css">
+        .home-main-view{
+            height: 100%;
+            z-index: 1;
+        }
+        .swiper-main{
+            height: calc(100% - 41px);
+            position: relative;
+            top: 41px;
+        }
+        .wrapper-main{
+            height: 100%;
+            width: 100%;
+        }
+        .swiper-header-tab-out{
+            background-color: #1E2328;
+            padding-bottom: 3px;
+            padding-top: 10px;
+            position: fixed;
+            width: 100%;
+            z-index: 2;
+        }
+        .swiper-header-tab{
+            display: flex;
+        }
+        .swiper-header-tab-item{
+            flex: 1 1;
+            font-weight: 100;
+            color: white;
+        }
+        .select-div{
+            width: 100%;
+        }
+        .select-div-inner{
+            width: 25%;
+            height: 3px;
+            background-color: white;
+            margin: 2px auto 2px;
+            border-radius: 100px;
+            /*transition:all 0.2s;*/
+        }
+        .swiper-slide-content{
+            height: 100%;
+            overflow-y: scroll;
+            -webkit-overflow-scrolling : touch
+        }
+        #radio-slide{
+            display: flex;
+            justify-content:center;
+            align-items:center;
+        }
+        #radio-slide i{
+        }
+        .swiper-container{
+            margin-top: 0px;
+        }
+        .myloaddiv{
+            min-height: 100%;
+            padding-top: 2px;
+        }
+        .mint-loadmore-content{
+        }
+        .mint-spinner-snake{
+            margin: auto;
+        }
+
+
+
+        .swiper-info{
+            text-align: center;
+            padding-bottom: 0px;
+        }
+        .index-banner-img {
+            width: 100%;
+            height: 160px;
+            display: inline-block;
+            overflow: hidden;
+        }
+        .swiper-slide-banner{
+            width: 90%;
+        }
+        .swiper-pagination-fraction, .swiper-pagination-custom, .swiper-container-horizontal > .swiper-pagination-bullets{
+            bottom: 4px;
+        }
+        .swiper-container-horizontal > .swiper-pagination-bullets .swiper-pagination-bullet{
+            margin: 0 2px;
+            background:#ffffff;
+        }
+        .swiper-pagination-bullet{
+            border-radius: 0;
+            width: 4px;
+            height: 4px;
+            transition: width 0.5s;
+        }
+        .swiper-pagination-bullet-active{
+            width: 12px;
+            transition: width 0.5s;
+        }
+        .banner-title{
+            position: relative;
+            top: -54px;
+            color: white;
+            font-weight: bold;
+        }
+        .going-news{
+            margin-top: -6px;
+        }
+
+
+
+    </style>
+</head>
+<body>
+    <div id="app">
+
+
+        <div class="home-main-view ">
+            <div class="swiper-header-tab-out">
+                <div class="swiper-header-tab wd80 marginAuto">
+                    <div v-for="(item,index) in siderList" :key="index" @click="changeSider(index,$event)" class="swiper-header-tab-item textcenter">
+                        {{item.name}}
+                        <template v-if="index===0">
+                            <div class="select-div">
+                                <div class="select-div-inner"></div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            </div>
+            <div class="swiper-container swiper-main">
+                <div class="swiper-wrapper wrapper-main">
+                    <div class="swiper-slide">
+                        <div class="swiper-slide-content">
+                            <!--第一个页面的内容-->
+                            <mt-loadmore
+                                    ref="loadmore"
+                                    class="myloaddiv"
+                                    :topDistance="60"
+                                    :maxDistance="90"
+                                    :top-method="loadTop"
+                                    @translate-change="translateChange"
+                                    @top-status-change="handleTopChange"
+
+                                    :bottom-method="loadBottom"
+                                    @bottom-status-change="handleBottomChange"
+                                    :bottom-all-loaded="allLoaded"
+                            >
+                                <!--新闻的banner-->
+                                <div class="swiper-container swiper-info">
+                                    <div class="swiper-wrapper">
+                                        <div class="swiper-slide swiper-slide-banner" v-for="(item,index) in firstBanner">
+                                            <div class="index-banner-img">
+                                                <img width="100%" height="100%" src="http://qiniu.kajie88.com/index-banner.jpg">
+                                                <div class="banner-title text_clamp2 textleft wd90 marginAuto">{{item.title}}</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <!-- Add Pagination -->
+                                    <div class="swiper-pagination swiper-pagination-firstbanner"></div>
+                                </div>
+
+                                <!--正在模块 start-->
+                                <div class="going-news">
+                                    <div class="dis_table wd100">
+                                        <div class="dis_table_row">
+                                            <div class="dis_table_cell wd20 textright" >
+                                                <!--正在div-->
+                                                <div class="inline-block" style="width: 40px;height: 30px;background: url('./image/icons.png');background-position: -297px 5px;position: relative;bottom: -2px;"></div>
+                                                <!--向右三角div-->
+                                                <div class="triangle_border_right inline-block" ></div>
+                                            </div>
+                                            <div class="dis_table_cell textleft pl10">全球市场大直播</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--正在模块 end-->
+
+                                <div slot="top" class="mint-loadmore-top">
+                                    <span v-show="topStatus !== 'loading'" :class="{ 'rotate': topStatus === 'drop' }">↓下拉刷新</span>
+                                    <span v-show="topStatus === 'loading'">Loading...</span>
+                                </div>
+                                <div slot="bottom" class="mint-loadmore-bottom">
+                                    <span v-show="bottomStatus !== 'loading'" :class="{ 'is-rotate': bottomStatus === 'drop' }">上拉加载更多</span>
+                                    <span  v-show="bottomStatus === 'loading'">
+                                        <mt-spinner type="snake"></mt-spinner>
+                                    </span>
+                                </div>
+                            </mt-loadmore>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="swiper-slide-content">
+                            <!--第二个页面的内容-->
+                            <mt-loadmore
+                                    ref="loadmoreStock"
+                                    class="myloaddiv"
+                                    :topDistance="60"
+                                    :maxDistance="90"
+                                    :top-method="loadTopStock"
+                                    @translate-change="translateChangeStock"
+                                    @top-status-change="handleTopChangeStock"
+
+                                    :bottom-method="loadBottomStock"
+                                    @bottom-status-change="handleBottomChangeStock"
+                                    :bottom-all-loaded="allLoadedStock"
+                            >
+                                <div slot="top" class="mint-loadmore-top">
+                                    <span v-show="topStatusStock !== 'loading'" :class="{ 'rotate': topStatusStock === 'drop' }">↓下拉刷新</span>
+                                    <span v-show="topStatusStock === 'loading'">Loading...</span>
+                                </div>
+                                <template v-for="(item,index) in testListStock">
+                                    {{index}}---2<br>
+                                </template>
+
+                                <div slot="bottom" class="mint-loadmore-bottom">
+                                    <span v-show="bottomStatusStock !== 'loading'" :class="{ 'is-rotate': bottomStatusStock === 'drop' }">上拉加载更多</span>
+                                    <span  v-show="bottomStatusStock === 'loading'">
+                                        <mt-spinner type="snake"></mt-spinner>
+                                    </span>
+                                </div>
+                            </mt-loadmore>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+</body>
+<script src="./js/vue.min.js"></script>
+<script src="./js/swiper.js"></script>
+<script src="./js/mint-ui.min.js"></script>
+<script src="./js/axios.min.js"></script>
+
+
+<script src="./js/httpUtils.js"></script>
+<script src="./js/urlInfo.js"></script>
+
+<script>
+    new Vue({
+        el: '#app',
+        data:{
+            activeIndex:0,
+            siderList:[
+                {name:'选项1'},
+                {name:'选项2'}
+            ],
+            swiperMain:null,
+
+            topStatus: '',//下拉刷新页面的状态
+            topStatusStock: '',//下拉刷新页面的状态
+            translate: 0,//下拉距离
+            translateStock: 0,//下拉距离
+            moveTranslate:0,
+            moveTranslateStock:0,
+
+            allLoaded: false,
+            allLoadedStock: false,
+            bottomStatus: '',
+            bottomStatusStock: '',
+            wrapperHeight: 0,
+            wrapperHeightStock: 0,
+
+            testList:[0,1,2,3,4,5,6,7,8,9,10],
+            testListStock:[0,1,2,3,4,5,6,7,8,9,10],
+
+            firstBanner:[]
+        },
+        created() {
+
+        },
+        mounted() {
+            this.loadSwiper();
+            this.loadFirstBanner();
+        },
+        watch: {
+        },
+        methods: {
+            changeSider(index){
+                this.swiperMain.slideTo(index, 500, false);
+            },
+            loadSwiper(){
+                let _vm = this;
+                _vm.swiperMain = new Swiper('.swiper-main', {
+                    resistanceRatio : 0,//滑动到尽头时禁止在滑动
+                    iOSEdgeSwipeDetection : true,
+                    watchSlidesProgress : true,
+                    on: {
+                        slideChange: function () {
+                            _vm.activeIndex = this.activeIndex;
+                        },
+                        progress: function(progress){
+                            _vm.$nextTick(()=>{
+                                document.querySelector('.select-div-inner').style.width=25*(1+Math.abs(this.slides[_vm.activeIndex].progress)*2)+'%';
+                                document.querySelector('.select-div').style.transform = 'translateX('+document.querySelector('.swiper-header-tab-item').clientWidth*(this.slides.length-1)*progress+'px)';
+                            });
+                        },
+                        touchStart: function() {
+                            document.querySelector('.select-div').style.transition = '';
+                            document.querySelector('.select-div-inner').style.transition = '';
+                        },
+                        setTransition: function(speed) {
+                            document.querySelector('.select-div').style.transition = speed + 'ms';
+                            document.querySelector('.select-div-inner').style.transition = speed + 'ms';
+                        }
+                    }
+                });
+            },
+            loadFirstBanner(){
+                $req.post(urlInfo.getNewsRecommend,{
+                },this).then(result=>{
+                    console.log("2222222",result.data.list)
+                    this.firstBanner = result.data.list;
+                    this.$nextTick(()=>{
+                        let _vm = this;
+                        _vm.swiperInfo = new Swiper('.swiper-info', {
+                            iOSEdgeSwipeDetection: true,
+                            spaceBetween: 5,
+                            centeredSlides: true,
+                            loop: true,
+                            // autoplay: {
+                            //     delay: 3000,
+                            //     disableOnInteraction: false,
+                            // },
+                            slidesPerView: 'auto',
+                            pagination: {
+                                el: '.swiper-pagination',
+                            },
+                        });
+                    })
+                });
+            },
+            loadTop() {
+                setTimeout(() => {
+                    console.log("模拟一次request请求，延迟1s")
+                    this.translate = 0;
+                    this.$refs.loadmore.onTopLoaded();
+                }, 500);
+            },
+            /**
+             *   top-status-change 每当 状态改变 时触发
+             *   已知状态 pull 默认状态，drop 释放后执行 top-method， loading drop状态后待没有执行onTopLoaded()方法时的状态。
+             */
+            handleTopChange(status) {
+                this.moveTranslate = 1;
+                this.topStatus = status;
+            },
+            // @translate-change 当我执行 滑动操作时 总会触发此事件
+            translateChange(translate) {
+                const translateNum = +translate;
+                this.translate = translateNum.toFixed(2);
+            },
+            handleBottomChange(status) {
+                this.bottomStatus = status;
+            },
+            loadBottom() {
+                setTimeout(() => {
+                    let lastValue = this.testList[this.testList.length - 1];
+                    if (lastValue < 100) {
+                        for (let i = 1; i <= 10; i++) {
+                            this.testList.push(lastValue + i);
+                        }
+                    } else {
+                        this.allLoaded = true;
+                    }
+                    this.$refs.loadmore.onBottomLoaded();
+                }, 1500);
+            },
+
+
+
+            loadTopStock() {
+                setTimeout(() => {
+                    console.log("模拟一次request请求，延迟1s")
+                    this.translateStock = 0;
+                    this.$refs.loadmoreStock.onTopLoaded();
+                }, 500);
+            },
+            /**
+             *   top-status-change 每当 状态改变 时触发
+             *   已知状态 pull 默认状态，drop 释放后执行 top-method， loading drop状态后待没有执行onTopLoaded()方法时的状态。
+             */
+            handleTopChangeStock(status) {
+                this.moveTranslateStock = 1;
+                this.topStatusStock = status;
+            },
+            // @translate-change 当我执行 滑动操作时 总会触发此事件
+            translateChangeStock(translate) {
+                const translateNum = +translate;
+                this.translateStock = translateNum.toFixed(2);
+            },
+            handleBottomChangeStock(status) {
+                this.bottomStatusStock = status;
+            },
+            loadBottomStock() {
+                setTimeout(() => {
+                    let lastValue = this.testListStock[this.testListStock.length - 1];
+                    if (lastValue < 100) {
+                        for (let i = 1; i <= 10; i++) {
+                            this.testListStock.push(lastValue + i);
+                        }
+                    } else {
+                        this.allLoadedStock = true;
+                    }
+                    this.$refs.loadmoreStock.onBottomLoaded();
+                }, 1500);
+            }
+        },
+        computed: {
+
+        },
+        components: {
+        }
+        // methods: {
+        //     handleClick: function() {
+        //         $req.post(urlInfo.login,{
+        //             loginid: 101394,
+        //             pwd: "3piub2",
+        //             isStock:"0",
+        //         },this).then(result=>{
+        //             console.log("2222222",result)
+        //         });
+        //     }
+        // }
+    })
+</script>
+</html>
