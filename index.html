@@ -344,7 +344,6 @@
                     "pageSize": 10,
                 },this).then(result=>{
                     this.innerNewsList = result.data.list;
-                    console.log("this.innerNewsList",this.innerNewsList)
                 });
             },
             loadNowTop2(){
@@ -398,7 +397,6 @@
             loadFirstBanner(){
                 $req.post(urlInfo.getNewsRecommend,{
                 },this).then(result=>{
-                    console.log("2222222",result.data.list)
                     this.firstBanner = result.data.list;
                     this.$nextTick(()=>{
                         let _vm = this;
@@ -421,7 +419,6 @@
             },
             loadTop() {
                 setTimeout(() => {
-                    console.log("模拟一次request请求，延迟1s")
                     this.translate = 0;
                     this.$refs.loadmore.onTopLoaded();
                 }, 500);
@@ -460,7 +457,6 @@
 
             loadTopStock() {
                 setTimeout(() => {
-                    console.log("模拟一次request请求，延迟1s")
                     this.translateStock = 0;
                     this.$refs.loadmoreStock.onTopLoaded();
                 }, 500);
@@ -511,17 +507,6 @@
         },
         components: {
         }
-        // methods: {
-        //     handleClick: function() {
-        //         $req.post(urlInfo.login,{
-        //             loginid: 101394,
-        //             pwd: "3piub2",
-        //             isStock:"0",
-        //         },this).then(result=>{
-        //             console.log("2222222",result)
-        //         });
-        //     }
-        // }
     })
 </script>
 </html>
