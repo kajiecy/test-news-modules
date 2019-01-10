@@ -193,25 +193,15 @@
                                             </div>
                                         </div>
                                         <!--新闻模块模块主体-->
-                                        <div class="dis_table_row">
-                                            <div class="dis_table_cell ft12" style="font-weight: 700;border-top: 1px solid #e0e0e0">
-                                                21:57
-                                            </div>
-                                            <div class="dis_table_cell pb5">
-                                                <div class=" textleft ft12 text_clamp2 pt5 " style="border-top: 1px solid #e0e0e0">
-                                                    期货夜盘手收盘|乾坤袋静安寺打卡机斯内德看卡十多年卡萨诺多看对接口啊是南京乾坤袋静安寺打卡机斯内德看卡十多年卡萨诺多看对接口啊是南京
-                                                </div>
-                                            </div>
 
-                                        </div>
-                                        <div class="dis_table_row">
-                                            <div class="dis_table_cell pt10 ft12" style="font-weight: 700;border-top: 1px solid #e0e0e0">
-                                                21:57
+                                        <div class="dis_table_row" v-for="(item,index) in nowList">
+                                            <div class="dis_table_cell ft12 "v-text="cureDateString(item).timeSimple" style="font-weight: 700;border-top: 1px solid #e0e0e0">
                                             </div>
                                             <div class="dis_table_cell pb5">
-                                                <div class=" textleft ft12 text_clamp2 pt5 " style="border-top: 1px solid #e0e0e0">
-                                                    期货夜盘手收盘|乾坤袋静安寺打卡机斯内德看卡十多年卡萨诺多看对接口啊是南京乾坤袋静安寺打卡机斯内德看卡十多年卡萨诺多看对接口啊是南京
-                                                </div>
+                                                <a href="./pages/newsNow.html" style="color: #1E2328;text-decoration: none">
+                                                    <div v-html="cureResultList(item)[3]" class=" textleft ft12 text_clamp2 pt5 " style="border-top: 1px solid #e0e0e0">
+                                                    </div>
+                                                </a>
                                             </div>
                                         </div>
                                     </div>
@@ -219,21 +209,19 @@
                                 <!--正在模块 end-->
 
                                 <!--内部新闻模块 start-->
-                                <div class="inner-news" v-for="(item) in 7">
+                                <div class="inner-news" v-for="(item,index) in innerNewsList">
                                     <div class="inner-news-body pt10 pb10" style="border-top: 1px solid #eeeeee">
                                         <div class="dis_table " style="width: 95%;margin: auto">
                                             <div class="dis_table_row">
                                                 <div class="dis_table_cell textleft ">
-                                                    <div class="text_clamp3">
-                                                        微信张小龙：次二十按时打卡接收到哈开始接电话喀什奥斯卡级等哈说看见的卡接收到哈开始接电话喀什奥斯卡级等哈说看见的
+                                                    <div class="text_clamp3" v-text="item.title">
                                                     </div>
-                                                    <div class="ft12" style="color: #888888">
-                                                        1天前
+                                                    <div class="ft12" style="color: #888888" v-text="item.create_time">
                                                     </div>
                                                 </div>
                                                 <div class="dis_table_cell" style="width: 140px">
                                                     <div class="inner-news-img">
-                                                        <img src="http://qiniu.kajie88.com/index-banner.jpg" width="100%" height="100%">
+                                                        <img :src="item.title_img" width="100%" height="100%">
                                                     </div>
                                                 </div>
                                             </div>
@@ -312,8 +300,8 @@
         data:{
             activeIndex:0,
             siderList:[
-                {name:'选项1'},
-                {name:'选项2'}
+                {name:'全球'},
+                {name:'美股'}
             ],
             swiperMain:null,
 
@@ -332,10 +320,11 @@
             bottomStatusStock: '',
             wrapperHeightStock: 0,
             testListStock:[0,1,2,3,4,5,6,7,8,9,10],
-
             testList:[0,1,2,3,4,5,6,7,8,9,10],
+            firstBanner:[],
+            nowList:[],
+            innerNewsList:[],
 
-            firstBanner:[]
         },
         created() {
 
@@ -343,10 +332,39 @@
         mounted() {
             this.loadSwiper();
             this.loadFirstBanner();
+            this.loadNowTop2();
+            this.loadInnerNews();
         },
         watch: {
         },
         methods: {
+            loadInnerNews(){
+                $req.post(urlInfo.getNewsInnerList4App,{
+                    "currentPage": 1,
+                    "pageSize": 10,
+                },this).then(result=>{
+                    this.innerNewsList = result.data.list;
+                    console.log("this.innerNewsList",this.innerNewsList)
+                });
+            },
+            loadNowTop2(){
+                $req.post(urlInfo.getNewsOutList4App,{
+                    "currentPage": 1,
+                    "pageSize": 2,
+                    "news_source": "jinshi"
+                },this).then(result=>{
+                    this.nowList = result.data.list;
+                    window.setInterval(()=>{
+                        $req.post(urlInfo.getNewsOutList4App,{
+                            "currentPage": 1,
+                            "pageSize": 2,
+                            "news_source": "jinshi"
+                        },this).then(result=>{
+                            this.nowList = result.data.list;
+                        });
+                    },5000);
+                });
+            },
             changeSider(index){
                 this.swiperMain.slideTo(index, 500, false);
             },
@@ -475,6 +493,17 @@
                     }
                     this.$refs.loadmoreStock.onBottomLoaded();
                 }, 1500);
+            },
+            cureResultList(jinshiItem){
+                let newsArray = jinshiItem.jinshi_content.split('#');
+                return newsArray;
+            },
+            cureDateString(jinshiItem){
+                let newsArray = jinshiItem.jinshi_content.split('#');
+                let dateTime = newsArray[2];
+                let dateStrs = dateTime.split(' ')[0].split('-');
+                let timeStrs = dateTime.split(' ')[1].split(':');
+                return {month:dateStrs[1],day:dateStrs[2],time:dateTime.split(' ')[1],timeSimple:timeStrs[0]+':'+timeStrs[1]};
             }
         },
         computed: {

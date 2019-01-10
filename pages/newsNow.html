@@ -16,6 +16,20 @@
             min-height: 100%;
             padding-top: 40px;
         }
+        .content-body{
+            height: 100%;
+            overflow: scroll;
+        }
+        .news-time{
+            background-color: #C9E8F6;
+            color: #2A6FAD;
+            padding: 3px 4px;
+            border-radius: 10px;
+            height: 22px;
+        }
+        .color-red{
+            color: #e74c3c;
+        }
 
     </style>
 </head>
@@ -26,34 +40,57 @@
             <mt-button @click="back()" icon="back">返回</mt-button>
         </span>
     </mt-header>
-    <mt-loadmore
-            ref="loadmoreStock"
-            class="myloaddiv"
-            :topDistance="60"
-            :maxDistance="90"
-            :top-method="loadTopStock"
-            @translate-change="translateChangeStock"
-            @top-status-change="handleTopChangeStock"
+    <div class="content-body">
+        <mt-loadmore
+                ref="loadmoreStock"
+                class="myloaddiv"
+                :topDistance="60"
+                :maxDistance="90"
+                :top-method="loadTopStock"
+                @translate-change="translateChangeStock"
+                @top-status-change="handleTopChangeStock"
 
-            :bottom-method="loadBottomStock"
-            @bottom-status-change="handleBottomChangeStock"
-            :bottom-all-loaded="allLoadedStock"
-    >
-        <div slot="top" class="mint-loadmore-top">
-            <span v-show="topStatusStock !== 'loading'" :class="{ 'rotate': topStatusStock === 'drop' }">↓下拉刷新</span>
-            <span v-show="topStatusStock === 'loading'">Loading...</span>
-        </div>
-        <template v-for="(item,index) in testListStock">
-            {{index}}---2<br>
-        </template>
+                :bottom-method="loadBottomStock"
+                @bottom-status-change="handleBottomChangeStock"
+                :bottom-all-loaded="allLoadedStock"
+        >
+            <div slot="top" class="mint-loadmore-top">
+                <span v-show="topStatusStock !== 'loading'" :class="{ 'rotate': topStatusStock === 'drop' }">↓下拉刷新</span>
+                <span v-show="topStatusStock === 'loading'">Loading...</span>
+            </div>
+            <!--正在模块 start-->
+            <div class="going-news ">
+                <!--新闻模块模块主体-->
+                <div class="" style="border-left: 1px solid #e1e1e1;padding: 7px 7px 7px 25px;margin: 0px 0px 0px 20px;" v-for="(item,index) in newsOutList">
+                    <div class="textleft">
+                        <div class="mb5">
+                            <div class="inline-block ft12 news-time" v-text="cureDateString(item).time"></div>
+                            <div class="inline-block" style="border-top: 1px solid #e1e1e1;position: relative;top: 12px;left: -91px;width: 30px">
+                                <div class="inline-block" style="background-color: #2A6FAD;border: 3px solid #C9E8F6;width: 9px;height: 9px;border-radius: 50%;position: relative;top: -12px"></div>
+                            </div>
+                        </div>
+                        <div :class="cureResultList(item)[1]==='0'?'color-red':''" v-html="cureResultList(item)[3]"></div>
+                        <div v-if="cureResultList(item)[6]" @click="showPopup('http://image.jin10.com/'+cureResultList(item)[6])">
+                            <img :src="'http://image.jin10.com/'+cureResultList(item)[6]" width="90" height="60">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--正在模块 end-->
 
-        <div slot="bottom" class="mint-loadmore-bottom">
-            <span v-show="bottomStatusStock !== 'loading'" :class="{ 'is-rotate': bottomStatusStock === 'drop' }">上拉加载更多</span>
-            <span  v-show="bottomStatusStock === 'loading'">
+            <div slot="bottom" class="mint-loadmore-bottom">
+                <span v-show="bottomStatusStock !== 'loading'" :class="{ 'is-rotate': bottomStatusStock === 'drop' }">上拉加载更多</span>
+                <span  v-show="bottomStatusStock === 'loading'">
                 <mt-spinner type="snake"></mt-spinner>
             </span>
-        </div>
-    </mt-loadmore>
+            </div>
+        </mt-loadmore>
+
+        <mt-popup
+                v-model="popupVisible">
+            <img :src="popupUrl" style="width: 100vw" alt="">
+        </mt-popup>
+    </div>
 </div>
 </body>
 <script src="./../js/vue.min.js"></script>
@@ -74,27 +111,49 @@
             allLoadedStock: false,
             bottomStatusStock: '',
             wrapperHeightStock: 0,
-            testListStock:[0,1,2,3,4,5,6,7,8,9,10],
+            newsOutList:[],
+            currentPage:1,
+
+            popupVisible:false,
+            popupUrl:'',
         },
         created() {
 
         },
         mounted() {
-
+            this.loadNewsInfo();
         },
         watch: {
         },
         methods: {
+            showPopup(imgUrl){
+                this.popupUrl = imgUrl;
+                this.popupVisible = true;
+            },
+            loadNewsInfo(){
+                $req.post(urlInfo.getNewsOutList4App,{
+                    "currentPage": this.currentPage,
+                    "pageSize": 10,
+                    "news_source": "jinshi"
+                },this).then(result=>{
+                    console.log("getNewsOutList4App",result.data.list)
+                    this.newsOutList = result.data.list;
+                });
+            },
             back(){
                 window.location.href="./../index.html";
             },
-
             loadTopStock() {
-                setTimeout(() => {
-                    console.log("模拟一次request请求，延迟1s")
+                this.currentPage = 1;
+                $req.post(urlInfo.getNewsOutList4App,{
+                    "currentPage": this.currentPage,
+                    "pageSize": 10,
+                    "news_source": "jinshi"
+                },this).then(result=>{
+                    this.newsOutList = result.data.list;
                     this.translateStock = 0;
                     this.$refs.loadmoreStock.onTopLoaded();
-                }, 500);
+                });
             },
             /**
              *   top-status-change 每当 状态改变 时触发
@@ -113,17 +172,29 @@
                 this.bottomStatusStock = status;
             },
             loadBottomStock() {
-                setTimeout(() => {
-                    let lastValue = this.testListStock[this.testListStock.length - 1];
-                    if (lastValue < 100) {
-                        for (let i = 1; i <= 10; i++) {
-                            this.testListStock.push(lastValue + i);
-                        }
-                    } else {
-                        this.allLoadedStock = true;
-                    }
+                this.currentPage = this.currentPage + 1;
+                $req.post(urlInfo.getNewsOutList4App,{
+                    "currentPage": this.currentPage,
+                    "pageSize": 10,
+                    "news_source": "jinshi"
+                },this).then(result=>{
+                    this.newsOutList = this.newsOutList.concat(result.data.list);
+                    this.allLoadedStock = !result.data.hasNext;
                     this.$refs.loadmoreStock.onBottomLoaded();
-                }, 1500);
+                });
+
+
+            },
+            cureResultList(jinshiItem){
+                let newsArray = jinshiItem.jinshi_content.split('#');
+                return newsArray;
+            },
+            cureDateString(jinshiItem){
+                let newsArray = jinshiItem.jinshi_content.split('#');
+                let dateTime = newsArray[2];
+                let dateStrs = dateTime.split(' ')[0].split('-');
+                let timeStrs = dateTime.split(' ')[1].split(':');
+                return {month:dateStrs[1],day:dateStrs[2],time:dateTime.split(' ')[1]};
             }
         },
         computed: {
