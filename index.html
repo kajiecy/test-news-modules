@@ -209,7 +209,7 @@
                                 <!--正在模块 end-->
 
                                 <!--内部新闻模块 start-->
-                                <div class="inner-news" v-for="(item,index) in innerNewsList">
+                                <div class="inner-news" v-for="(item,index) in innerNewsList" @click="pushToInnerNews(item)">
                                     <div class="inner-news-body pt10 pb10" style="border-top: 1px solid #eeeeee">
                                         <div class="dis_table " style="width: 95%;margin: auto">
                                             <div class="dis_table_row">
@@ -338,6 +338,10 @@
         watch: {
         },
         methods: {
+            pushToInnerNews(newsInfo){
+                // console.log("newsInfo",newsInfo);
+                window.location.href = './pages/innerNews.html?id='+newsInfo.id;
+            },
             loadInnerNews(){
                 $req.post(urlInfo.getNewsInnerList4App,{
                     "currentPage": 1,

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0, user-scalable=0,viewport-fit=cover">
+    <meta name="referrer" content="never">
+    <title>新闻</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="./../css/mint-ui.css">
+    <link rel="stylesheet" href="./../css/swiper.css">
+    <link rel="stylesheet" href="./../css/common.css">
+    <link rel="stylesheet" href="./../css/main.css">
+
+    <style type="text/css">
+
+    </style>
+</head>
+<body>
+<div id="app">
+    <mt-header fixed title="正在">
+        <span slot="left">
+            <mt-button @click="back()" icon="back">返回</mt-button>
+        </span>
+    </mt-header>
+</div>
+</body>
+<script src="./../js/vue.min.js"></script>
+<script src="./../js/swiper.js"></script>
+<script src="./../js/mint-ui.min.js"></script>
+<script src="./../js/axios.min.js"></script>
+
+<script src="./../js/httpUtils.js"></script>
+<script src="./../js/urlInfo.js"></script>
+
+<script>
+    new Vue({
+        el: '#app',
+        data:{
+        },
+        created() {
+
+        },
+        mounted() {
+        },
+        watch: {
+        },
+        methods: {
+            GetRequest:function(){
+                var url = location.search; //获取url中"?"符后的字串
+                var theRequest = new Object();
+                if (url.indexOf("?") !== -1) {
+                    var str = url.substr(1);
+                    strs = str.split("&");
+                    for(var i = 0; i < strs.length; i ++) {
+                        theRequest[strs[i].split("=")[0]]=unescape(strs[i].split("=")[1]);
+                    }
+                }
+                return theRequest;
+            },
+        },
+        computed: {
+
+        },
+        components: {
+        }
+    })
+</script>
+</html>
