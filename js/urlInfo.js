@@ -1,4 +1,4 @@
-const baseUrl = "http://apps.forexspace.cn/mtinter/mvc";
+const baseUrl = "http://121.199.34.161:8881/mtinter/mvc";
 let urlInfo = {
     login: baseUrl + '/common/login.json',
     getNewsRecommend: baseUrl + '/news/getNewsRecommend.json',
