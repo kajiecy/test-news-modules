@@ -153,6 +153,7 @@
                     this.newsOutList = result.data.list;
                     this.translateStock = 0;
                     this.$refs.loadmoreStock.onTopLoaded();
+                    this.allLoadedStock = !result.data.hasNext;
                 });
             },
             /**

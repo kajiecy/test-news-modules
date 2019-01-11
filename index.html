@@ -123,7 +123,16 @@
             height: 80px;
         }
 
-
+        .news-time{
+            background-color: #C9E8F6;
+            color: #2A6FAD;
+            padding: 3px 4px;
+            border-radius: 10px;
+            height: 22px;
+        }
+        .color-red{
+            color: #e74c3c;
+        }
     </style>
 </head>
 <body>
@@ -166,7 +175,9 @@
                                     <div class="swiper-wrapper">
                                         <div class="swiper-slide swiper-slide-banner" v-for="(item,index) in firstBanner">
                                             <div class="index-banner-img">
-                                                <img width="100%" height="100%" src="http://qiniu.kajie88.com/index-banner.jpg">
+                                                <a :href="'./pages/innerNews.html?id='+item.id">
+                                                    <img width="100%" height="100%" :src="item.title_img">
+                                                </a>
                                                 <div class="banner-title text_clamp2 textleft wd90 marginAuto">{{item.title}}</div>
                                             </div>
                                         </div>
@@ -264,9 +275,30 @@
                                     <span v-show="topStatusStock !== 'loading'" :class="{ 'rotate': topStatusStock === 'drop' }">↓下拉刷新</span>
                                     <span v-show="topStatusStock === 'loading'">Loading...</span>
                                 </div>
-                                <template v-for="(item,index) in testListStock">
-                                    {{index}}---2<br>
-                                </template>
+                                <!--正在模块 start-->
+                                <div class="going-news ">
+                                    <!--新闻模块模块主体-->
+                                    <div class="" style="border-left: 1px solid #e1e1e1;padding: 7px 7px 7px 25px;margin: 0px 0px 0px 20px;" v-for="(item,index) in newsOutList">
+                                        <div class="textleft">
+                                            <div class="mb5">
+                                                <div class="inline-block ft12 news-time" v-text="cureDateString(item.create_time,'huaerjie').time"></div>
+                                                <div class="inline-block" style="border-top: 1px solid #e1e1e1;position: relative;top: 12px;left: -91px;width: 30px">
+                                                    <div class="inline-block" style="background-color: #2A6FAD;border: 3px solid #C9E8F6;width: 9px;height: 9px;border-radius: 50%;position: relative;top: -12px"></div>
+                                                </div>
+                                            </div>
+                                            <div :class="item.score==='3'?'color-red':''" v-html="item.content"></div>
+
+                                            <div v-if="item.image_uris!=='[]'">
+                                                <template v-for="(item,index) in getImgArray(item.image_uris)">
+                                                    <div class="inline-block" @click="showPopup(item)" style="width: 90px;height: 60px;margin: 3px 5px  ">
+                                                        <img :src="item" width="100%" height="100%">
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--正在模块 end-->
 
                                 <div slot="bottom" class="mint-loadmore-bottom">
                                     <span v-show="bottomStatusStock !== 'loading'" :class="{ 'is-rotate': bottomStatusStock === 'drop' }">上拉加载更多</span>
@@ -276,13 +308,18 @@
                                 </div>
                             </mt-loadmore>
 
+
+
                         </div>
                     </div>
                 </div>
             </div>
         </div>
 
-
+        <mt-popup
+                v-model="popupVisible">
+            <img :src="popupUrl" style="width: 100vw" alt="">
+        </mt-popup>
     </div>
 </body>
 <script src="./js/vue.min.js"></script>
@@ -323,8 +360,15 @@
             testList:[0,1,2,3,4,5,6,7,8,9,10],
             firstBanner:[],
             nowList:[],
-            innerNewsList:[],
 
+            innerNewsList:[],
+            newsOutList:[],
+
+            currentPage:1,
+            currentPageStock:1,
+
+            popupVisible:false,
+            popupUrl:'',
         },
         created() {
 
@@ -334,17 +378,17 @@
             this.loadFirstBanner();
             this.loadNowTop2();
             this.loadInnerNews();
+            this.loadNewsInfo();
         },
         watch: {
         },
         methods: {
             pushToInnerNews(newsInfo){
-                // console.log("newsInfo",newsInfo);
                 window.location.href = './pages/innerNews.html?id='+newsInfo.id;
             },
             loadInnerNews(){
                 $req.post(urlInfo.getNewsInnerList4App,{
-                    "currentPage": 1,
+                    "currentPage": this.currentPage,
                     "pageSize": 10,
                 },this).then(result=>{
                     this.innerNewsList = result.data.list;
@@ -409,10 +453,10 @@
                             spaceBetween: 5,
                             centeredSlides: true,
                             loop: true,
-                            // autoplay: {
-                            //     delay: 3000,
-                            //     disableOnInteraction: false,
-                            // },
+                            autoplay: {
+                                delay: 3000,
+                                disableOnInteraction: false,
+                            },
                             slidesPerView: 'auto',
                             pagination: {
                                 el: '.swiper-pagination',
@@ -422,10 +466,18 @@
                 });
             },
             loadTop() {
-                setTimeout(() => {
+                this.currentPage = 1;
+                $req.post(urlInfo.getNewsInnerList4App,{
+                    "currentPage": this.currentPage,
+                    "pageSize": 10,
+                },this).then(result=>{
+                    this.innerNewsList = result.data.list;
                     this.translate = 0;
                     this.$refs.loadmore.onTopLoaded();
-                }, 500);
+                    this.allLoaded = !result.data.hasNext;
+                });
+
+
             },
             /**
              *   top-status-change 每当 状态改变 时触发
@@ -444,26 +496,63 @@
                 this.bottomStatus = status;
             },
             loadBottom() {
-                setTimeout(() => {
-                    let lastValue = this.testList[this.testList.length - 1];
-                    if (lastValue < 100) {
-                        for (let i = 1; i <= 10; i++) {
-                            this.testList.push(lastValue + i);
-                        }
-                    } else {
-                        this.allLoaded = true;
-                    }
+                this.currentPage = this.currentPage + 1;
+                $req.post(urlInfo.getNewsInnerList4App,{
+                    "currentPage": this.currentPage,
+                    "pageSize": 10,
+                },this).then(result=>{
+                    this.innerNewsList = this.innerNewsList.concat(result.data.list);
+                    this.allLoaded = !result.data.hasNext;
                     this.$refs.loadmore.onBottomLoaded();
-                }, 1500);
+                });
             },
-
-
-
+            cureResultList(jinshiItem){
+                let newsArray = jinshiItem.jinshi_content.split('#');
+                return newsArray;
+            },
+            cureDateString(jinshiItem,type){
+                if(type==='huaerjie'){
+                    let dateTime = jinshiItem;
+                    let dateStrs = dateTime.split(' ')[0].split('-');
+                    let timeStrs = dateTime.split(' ')[1].split(':');
+                    return {month:dateStrs[1],day:dateStrs[2],time:dateTime.split(' ')[1],timeSimple:timeStrs[0]+':'+timeStrs[1]};
+                }else {
+                    let newsArray = jinshiItem.jinshi_content.split('#');
+                    let dateTime = newsArray[2];
+                    let dateStrs = dateTime.split(' ')[0].split('-');
+                    let timeStrs = dateTime.split(' ')[1].split(':');
+                    return {month:dateStrs[1],day:dateStrs[2],time:dateTime.split(' ')[1],timeSimple:timeStrs[0]+':'+timeStrs[1]};
+                }
+            },
+            showPopup(imgUrl){
+                this.popupUrl = imgUrl;
+                this.popupVisible = true;
+            },
+            loadNewsInfo(){
+                $req.post(urlInfo.getNewsOutList4App,{
+                    "currentPage": this.currentPageStock,
+                    "pageSize": 10,
+                    "news_source": "huaerjie"
+                },this).then(result=>{
+                    console.log("getNewsOutList4App",result.data.list)
+                    this.newsOutList = result.data.list;
+                });
+            },
+            back(){
+                window.location.href="./../index.html";
+            },
             loadTopStock() {
-                setTimeout(() => {
+                this.currentPageStock = 1;
+                $req.post(urlInfo.getNewsOutList4App,{
+                    "currentPage": this.currentPageStock,
+                    "pageSize": 10,
+                    "news_source": "huaerjie"
+                },this).then(result=>{
+                    this.newsOutList = result.data.list;
                     this.translateStock = 0;
                     this.$refs.loadmoreStock.onTopLoaded();
-                }, 500);
+                    this.allLoadedStock = !result.data.hasNext;
+                });
             },
             /**
              *   top-status-change 每当 状态改变 时触发
@@ -482,28 +571,22 @@
                 this.bottomStatusStock = status;
             },
             loadBottomStock() {
-                setTimeout(() => {
-                    let lastValue = this.testListStock[this.testListStock.length - 1];
-                    if (lastValue < 100) {
-                        for (let i = 1; i <= 10; i++) {
-                            this.testListStock.push(lastValue + i);
-                        }
-                    } else {
-                        this.allLoadedStock = true;
-                    }
+                this.currentPageStock = this.currentPageStock + 1;
+                $req.post(urlInfo.getNewsOutList4App,{
+                    "currentPage": this.currentPageStock,
+                    "pageSize": 10,
+                    "news_source": "huaerjie"
+                },this).then(result=>{
+                    this.newsOutList = this.newsOutList.concat(result.data.list);
+                    this.allLoadedStock = !result.data.hasNext;
                     this.$refs.loadmoreStock.onBottomLoaded();
-                }, 1500);
+                });
+
+
             },
-            cureResultList(jinshiItem){
-                let newsArray = jinshiItem.jinshi_content.split('#');
-                return newsArray;
-            },
-            cureDateString(jinshiItem){
-                let newsArray = jinshiItem.jinshi_content.split('#');
-                let dateTime = newsArray[2];
-                let dateStrs = dateTime.split(' ')[0].split('-');
-                let timeStrs = dateTime.split(' ')[1].split(':');
-                return {month:dateStrs[1],day:dateStrs[2],time:dateTime.split(' ')[1],timeSimple:timeStrs[0]+':'+timeStrs[1]};
+            getImgArray(imgUrls){
+                let imgs = JSON.parse(imgUrls);
+                return imgs;
             }
         },
         computed: {

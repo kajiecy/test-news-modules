@@ -12,16 +12,46 @@
     <link rel="stylesheet" href="./../css/main.css">
 
     <style type="text/css">
-
+        .newInnerContent{
+            padding-top: 40px;
+        }
     </style>
 </head>
 <body>
 <div id="app">
-    <mt-header fixed title="正在">
+    <mt-header fixed title="全球新闻">
         <span slot="left">
             <mt-button @click="back()" icon="back">返回</mt-button>
         </span>
     </mt-header>
+    <div class="newInnerContent wd96 pb30">
+        <h4 v-text="newsDetail.title" class="mt5 mb5"></h4>
+        <div>
+            <span v-text="newsDetail.create_time" class="ft12" style="color: #999999"></span>
+            <span class="ft12" style="color: #999999">|</span>
+            <span v-text="newsDetail.author" class="ft12" style="color: #999999"></span>
+            <span class="ft12" style="color: #999999">|</span>
+            <span class="ft12" style="color: #999999">阅读量 :</span>
+            <span v-text="newsDetail.read_count" class="ft12" style="color: #999999"></span>
+
+        </div>
+        <div v-html="newsDetail.content">
+        </div>
+        <!--v-text="newsDetail.praise_count"-->
+        <div>
+            <div class="textcenter">
+                <mt-button @click="addPraise()" class="vertical-middle ft14" type="default">
+                    点赞
+                    <div class="inline-block vertical-middle" style="width: 25px;height: 25px;position: relative;top: -3px;">
+                        <img src="./../image/recommend2.svg" width="100%" height="100%">
+                    </div>
+                    <tempalte v-if="newsDetail.praise_count!=null&&newsDetail.praise_count!=0">
+                        <span v-text="' | '+newsDetail.praise_count"></span>
+                    </tempalte>
+                </mt-button>
+            </div>
+        </div>
+    </div>
 </div>
 </body>
 <script src="./../js/vue.min.js"></script>
@@ -36,11 +66,13 @@
     new Vue({
         el: '#app',
         data:{
+            newsDetail:{}
         },
         created() {
 
         },
         mounted() {
+            this.loadInnerNewsDetail();
         },
         watch: {
         },
@@ -57,6 +89,30 @@
                 }
                 return theRequest;
             },
+            loadInnerNewsDetail(){
+                $req.post(urlInfo.getNewsInnerList4App,{
+                    "currentPage": 1,
+                    "pageSize": 10,
+                    "id":this.GetRequest().id
+                },this).then(result=>{
+                    // console.log(result);
+                    if(result.data.list!=null&&result.data.list.length>0){
+                        this.newsDetail = result.data.list[0];
+                    }
+                });
+            },
+            back(){
+                window.location.href="./../index.html";
+            },
+            addPraise(){
+                $req.post(urlInfo.addPraise,{
+                    "newsId": this.GetRequest().id,
+                    "isInnerNews": 1
+                },this).then(result=>{
+                    this.loadInnerNewsDetail();
+                });
+
+            }
         },
         computed: {
 
